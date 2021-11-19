@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Maze
+  m_EditorClassIdentifier: 
+  m_GroupName: Maze
+  m_Data:
+    m_SerializedData: []
+  m_GUID: ffd6384801150ab4a9cf01f65c921a05
+  m_SerializeEntries:
+  - m_GUID: c81a595a555f6ca4b97453d5339b36ab
+    m_Address: Maze
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    m_MainAsset: {fileID: 102900000, guid: c81a595a555f6ca4b97453d5339b36ab, type: 3}
+    m_TargetAsset: {fileID: 102900000, guid: c81a595a555f6ca4b97453d5339b36ab, type: 3}
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: fd567fca15c4c8a46ab5d12a32516687, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 6af3000e32996db47b581fa9feeb5113, type: 2}
+    - {fileID: 11400000, guid: 18244d469bb5b0d47b34445d27e074ac, type: 2}
