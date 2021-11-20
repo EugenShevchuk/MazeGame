@@ -24,5 +24,16 @@ namespace Project.Extensions
         {
             return pool.Has(entity);
         }
+
+        public static void Del<T>(this int entity, EcsWorld world, EcsPool<T> pool = null) where T : struct
+        {
+            pool ??= world.GetPool<T>();
+            pool.Del(entity);
+        }
+        
+        public static void Del<T>(this int entity, EcsPool<T> pool) where T : struct
+        {
+            pool.Del(entity);
+        }
     }
 }

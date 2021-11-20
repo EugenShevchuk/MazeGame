@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Leopotam.EcsLite;
+using Project.UI;
 using UnityEngine;
 using UnityEngine.ResourceManagement.ResourceProviders;
 
@@ -10,6 +11,7 @@ namespace Project.Infrastructure
         public EcsWorld CurrentWorld;
         public Grid Grid;
         public AssetsData Assets;
+        public SelectedUI SelectedUI;
         public Level CurrentLevel;
         public Camera GameCamera;
 

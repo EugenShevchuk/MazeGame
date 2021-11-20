@@ -1,8 +1,11 @@
-﻿public enum Direction
+﻿namespace Project.Utilities
 {
-    West,
-    East,
-    North,
-    South,
-    Corner
+    public enum Direction
+    {
+        West,
+        East,
+        North,
+        South,
+        Corner
+    }
 }

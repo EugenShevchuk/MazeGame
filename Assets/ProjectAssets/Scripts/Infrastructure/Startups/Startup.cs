@@ -41,8 +41,11 @@ namespace Project.Infrastructure
                 
                 .Add(new MazeBraidingSystem())
                 
-                .Add(new InputInitSystem())
+                .Add(new InputSystem())
                 .Add(new CameraSystem())
+                .Add(new ItemSelectingSystem())
+                .Add(new SelectedItemManagingSystem())
+                .Add(new UIUpdatingSystem())
                 
                 .Add(new BugCreatingSystem())
                 
@@ -60,6 +63,8 @@ namespace Project.Infrastructure
                 
                 .Add(new PathVisualizingSystem())
                 
+                .DelHere<SelectRequest>()
+                .DelHere<LeftMouseButtonPressedEvent>()
                 .DelHere<PlayerEndedTurnEvent>()
                 .DelHere<CreateViewRequest>()
                 

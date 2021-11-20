@@ -30,11 +30,13 @@ namespace Project.Systems
                     var camera = _cameraComponentPool.Get(cam).Camera;
                     var ray = camera.ScreenPointToRay(mousePosition);
 
-                    if (Physics.Raycast(ray, out var hit, 15))
+                    if (Physics.Raycast(ray, out var hit, 150))
                     {
                         if (hit.transform.TryGetComponent(out IViewObject view))
                             if (view.Entity.Unpack(out var world, out var entity))
-                                entity.Add<Selected>(world);
+                            {
+                                entity.Add<SelectRequest>(world);
+                            }
                     }
                 }
             }

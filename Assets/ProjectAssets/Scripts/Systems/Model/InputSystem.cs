@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Project.Systems
 {
-    internal sealed class InputInitSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySystem
+    internal sealed class InputSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySystem
     {
         private readonly EcsWorld _world = default;
 

@@ -17,7 +17,7 @@ MonoBehaviour:
   ZoomInMin: 4
   ZoomOutMax: 12
   Levels:
-  - MazeSize: 25
+  - MazeSize: 33
     SpawnerCount: 4
     BraidChance: 0.5
     TurnsBetweenSpawns:
