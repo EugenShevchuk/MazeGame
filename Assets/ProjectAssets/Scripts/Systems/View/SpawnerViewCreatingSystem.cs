@@ -1,4 +1,6 @@
-﻿using Project.Components;
+﻿using Leopotam.EcsLite;
+using Project.Components;
+using Project.Infrastructure;
 using Project.Interfaces;
 using Project.Pooling;
 using Project.UnityComponents;
@@ -9,7 +11,7 @@ namespace Project.Systems
     internal sealed class SpawnerViewCreatingSystem : ViewCreatingSystem<Spawner>
     {
         private Pool<SpawnerView> _pool;
-        
+
         protected override IViewObject CreateView(ref Spawner generic, Vector3 position)
         {
             _pool ??= Assets.SpawnerPoolCreator.CreatePool(Assets.SpawnerPrefab);
@@ -20,6 +22,10 @@ namespace Project.Systems
             view.gameObject.SetActive(true);
             
             return view;
+        }
+
+        public SpawnerViewCreatingSystem(EcsWorld world, SharedData data) : base(world, data)
+        {
         }
     }
 }

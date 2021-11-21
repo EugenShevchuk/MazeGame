@@ -16,12 +16,16 @@ namespace Project.Infrastructure
 
         private EcsWorld _world;
         private EcsSystems _systems;
+        private Actions _actions;
         
         private void Start()
         {
             _world = new EcsWorld();
             _data.CurrentWorld = _world;
-            _systems = new EcsSystems(_data.CurrentWorld, _data);
+            
+            _systems = new EcsSystems(_world, _data);
+            _actions = new Actions();
+            _actions.Enable();
             
             _systems
 #if UNITY_EDITOR
@@ -29,20 +33,27 @@ namespace Project.Infrastructure
 #endif
                 .ConvertScene()
                 
+                .AddGroup("GridGeneration", false, null,
+                    new GridGeneratingSystem(_world, _data),
+                    new GridSetupSystem(_world, _data),
+                    new CameraCentringSystem(_world, _data),
+                    
+                    new CellViewCreatingSystem(_world, _data),
+                    new ProcessorViewCreatingSystem(_world, _data),
+                    new ProcessorSurroundingViewCreatingSystem(_world, _data),
+                    new SpawnerViewCreatingSystem(_world, _data))
+                
+                .AddGroup("MazeGeneration", false, null,
+                    new MazeGeneratingSystem(_world, _data),
+                    new MazeBraidingSystem(_world, _data),
+                    
+                    new CellViewUpdatingSystem(_world))
+                
                 .Add(new GameSceneInitSystem())
-                .Add(new GridGeneratingSystem())
-                .DelHere<GenerateGridRequest>()
                 
-                .Add(new GridSetupSystem())
-                .DelHere<SetupGridRequest>()
-                
-                .Add(new MazeGeneratingSystem())
-                .DelHere<GenerateMazeRequest>()
-                
-                .Add(new MazeBraidingSystem())
-                
-                .Add(new InputSystem())
-                .Add(new CameraSystem())
+                .Add(new CameraInputSystem(_actions))
+                .Add(new CameraMovementSystem())
+
                 .Add(new ItemSelectingSystem())
                 .Add(new SelectedItemManagingSystem())
                 .Add(new UIUpdatingSystem())
@@ -51,16 +62,8 @@ namespace Project.Infrastructure
                 
                 .Add(new BugPathfindingSystem())
                 .Add(new BugMoveSystem())
-                
-                .Add(new CellViewCreatingSystem())
-                .Add(new CellViewUpdatingSystem())
-                
-                .Add(new ProcessorViewCreatingSystem())
-                .Add(new ProcessorSurroundingViewCreatingSystem())
-                .Add(new SpawnerViewCreatingSystem())
-                
-                .Add(new BugViewCreatingSystem())
-                
+
+                .Add(new BugViewCreatingSystem(_world, _data))
                 .Add(new PathVisualizingSystem())
                 
                 .DelHere<SelectRequest>()
@@ -81,6 +84,8 @@ namespace Project.Infrastructure
         {
             if (_systems != null)
             {
+                _actions.Disable();
+                _actions.Dispose();
                 _systems.Destroy();
                 _systems = null;
                 _world.Destroy();

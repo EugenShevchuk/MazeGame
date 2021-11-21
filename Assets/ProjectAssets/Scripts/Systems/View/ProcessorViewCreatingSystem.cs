@@ -13,7 +13,7 @@ namespace Project.Systems
     internal sealed class ProcessorViewCreatingSystem : ViewCreatingSystem<Cell>
     {
         private Pool<ProcessorView> _pool;
-        
+
         public override void Init(EcsSystems systems)
         {
             Request = World.Filter<CreateViewRequest>()
@@ -33,6 +33,10 @@ namespace Project.Systems
             view.gameObject.SetActive(true);
             
             return view;
+        }
+
+        public ProcessorViewCreatingSystem(EcsWorld world, SharedData data) : base(world, data)
+        {
         }
     }
 }

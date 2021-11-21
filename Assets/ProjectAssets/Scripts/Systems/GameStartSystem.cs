@@ -13,12 +13,15 @@ namespace Project.Systems
     {
         [EcsFilter(typeof(StartGameEvent))]
         private readonly EcsFilter _startGameEvent = default;
+
+        private readonly EcsPool<StartGameEvent> _startGamePool = default;
         
         public void Run(EcsSystems systems)
         {
             foreach (var i in _startGameEvent)
             {
                 StartGameAsync();
+                _startGamePool.Del(i);
             }
         }
 

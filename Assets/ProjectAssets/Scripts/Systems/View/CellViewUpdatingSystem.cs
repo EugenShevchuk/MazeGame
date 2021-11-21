@@ -10,13 +10,20 @@ namespace Project.Systems
 {
     internal sealed class CellViewUpdatingSystem : IEcsRunSystem
     {
-        [EcsFilter(typeof(CreateViewRequest), typeof(Cell), typeof(ObjectViewRef))]
-        [EcsFilterExclude(typeof(Processor), typeof(ProcessorSurroundings))]
         private readonly EcsFilter _cellToUpdate = default;
 
         private readonly EcsPool<Cell> _cellPool = default;
         private readonly EcsPool<ObjectViewRef> _cellViewPool = default;
-        
+
+        internal CellViewUpdatingSystem(EcsWorld world)
+        {
+            _cellToUpdate = world.Filter<CreateViewRequest>().Inc<Cell>().Inc<ObjectViewRef>()
+                .Exc<ProcessorSurroundings>().Exc<Processor>().End();
+
+            _cellPool = world.GetPool<Cell>();
+            _cellViewPool = world.GetPool<ObjectViewRef>();
+        }
+
         public void Run(EcsSystems systems)
         {
             foreach (var i in _cellToUpdate)

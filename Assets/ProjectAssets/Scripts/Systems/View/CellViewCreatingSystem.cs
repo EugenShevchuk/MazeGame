@@ -2,6 +2,7 @@
 using Leopotam.EcsLite;
 using Project.Components;
 using Project.Events;
+using Project.Infrastructure;
 using Project.Interfaces;
 using Project.Pooling;
 using Project.UnityComponents;
@@ -13,7 +14,9 @@ namespace Project.Systems
     {
         private Pool<CellView> _pool;
 
-        private readonly EcsPool<Cell> _cellPool = default;
+        public CellViewCreatingSystem(EcsWorld world, SharedData data) : base(world, data)
+        {
+        }
 
         public override void Init(EcsSystems systems)
         {

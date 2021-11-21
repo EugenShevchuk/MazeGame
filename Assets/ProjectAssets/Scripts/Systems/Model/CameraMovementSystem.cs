@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Project.Systems
 {
-    internal sealed class CameraSystem : IEcsRunSystem
+    internal sealed class CameraMovementSystem : IEcsRunSystem
     {
         [EcsShared] private readonly SharedData _data = default;
 
@@ -42,8 +42,11 @@ namespace Project.Systems
             {
                 var cameraTransform = _worldObjectPool.Get(i).Transform;
                 var position = cameraTransform.position;
+                var camera = _cameraComponentPool.Get(i);
+                
                 position = Vector3.Lerp(position, position + (Vector3)direction, _data.Configuration.CameraMoveSpeed * Time.deltaTime);
-                cameraTransform.position = position;
+                
+                cameraTransform.position = ClampCameraPosition(position, camera);
             }
         }
 
@@ -51,12 +54,33 @@ namespace Project.Systems
         {
             foreach (var i in _camera)
             {
-                var camera = _cameraComponentPool.Get(i).Camera;
-                var cameraSize = camera.orthographicSize;
+                var camData = _cameraComponentPool.Get(i);
+                var camTransform = _worldObjectPool.Get(i).Transform;
+                var cameraSize = camData.Camera.orthographicSize;
                 var config = _data.Configuration;
-                var newCameraSize = Mathf.Clamp(cameraSize + direction, config.ZoomInMin, config.ZoomOutMax);
-                camera.orthographicSize = Mathf.Lerp(cameraSize, newCameraSize, config.CameraZoomSpeed * Time.deltaTime);
+                
+                var newCameraSize = Mathf.Clamp(cameraSize + direction, config.MinCameraSize, _data.CurrentLevel.MaxCameraSize);
+
+                camData.Camera.orthographicSize = Mathf.Lerp(cameraSize, newCameraSize, config.CameraZoomSpeed * Time.deltaTime);
+                camTransform.position = ClampCameraPosition(camTransform.position, camData);
             }
+        }
+
+        private Vector3 ClampCameraPosition(Vector3 target, in CameraComponent camData)
+        {
+            var height = camData.Camera.orthographicSize;
+            var width = height * camData.Camera.aspect;
+
+            
+            var minX = camData.MinX + width;
+            var maxX = camData.MaxX - width;
+            var minY = camData.MinY + height;
+            var maxY = camData.MaxY - height;
+
+            var newX = Mathf.Clamp(target.x, minX, maxX);
+            var newY = Mathf.Clamp(target.y, minY, maxY);
+
+            return new Vector3(newX, newY, target.z);
         }
     }
 }

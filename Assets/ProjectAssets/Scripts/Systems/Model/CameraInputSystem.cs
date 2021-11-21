@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Project.Systems
 {
-    internal sealed class InputSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySystem
+    internal sealed class CameraInputSystem : IEcsInitSystem, IEcsRunSystem
     {
         private readonly EcsWorld _world = default;
 
@@ -17,13 +17,15 @@ namespace Project.Systems
         private readonly EcsPool<LeftMouseButtonPressedEvent> _leftMouseEventPool = default;
         private readonly EcsPool<CameraInput> _cameraInputPool = default;
         
-        private Actions _actions;
+        private readonly Actions _actions;
+        
+        internal CameraInputSystem(Actions actions)
+        {
+            _actions = actions;
+        }
         
         public void Init(EcsSystems systems)
         {
-            _actions = new Actions();
-            _actions.Enable();
-
             var entity = _world.NewEntity();
             _mousePositionPool.Add(entity);
             _cameraInputPool.Add(entity);
@@ -34,12 +36,6 @@ namespace Project.Systems
 
             _actions.Mouse.Zoom.performed += _ => OnMouseWheelScrolled();
             _actions.Mouse.Zoom.canceled += _ => OnMouseWheelScrollCanceled();
-        }
-
-        public void Destroy(EcsSystems systems)
-        {
-            _actions.Disable();
-            _actions.Dispose();
         }
 
         public void Run(EcsSystems systems)

@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
 using Project.Components;
-using Project.Events;
 using Project.Extensions;
 using Project.Infrastructure;
 using Random = System.Random;
@@ -13,39 +11,39 @@ namespace Project.Systems
 {
     internal sealed class MazeGeneratingSystem : IEcsRunSystem
     {
-        private readonly EcsWorld _world = default;
+        private readonly EcsWorld _world;
+        private readonly SharedData _data;
         
-        [EcsShared] private readonly SharedData _data = default;
+        private readonly EcsFilter _mazeCells;
         
-        [EcsFilter(typeof(Cell))] 
-        [EcsFilterExclude(typeof(ProcessorSurroundings), typeof(Processor))]
-        private readonly EcsFilter _mazeCells = default;
-        
-        [EcsFilter(typeof(Spawner))] 
-        private readonly EcsFilter _spawners = default;
-
-        [EcsFilter(typeof(GenerateMazeRequest))] 
-        private readonly EcsFilter _request = default;
+        private readonly EcsFilter _spawners;
 
         private readonly EcsPool<Cell> _cellPool = default;
         private readonly EcsPool<DeadEnd> _deadEndPool = default;
         private readonly EcsPool<Spawner> _spawnerPool = default;
-        private readonly EcsPool<GenerateMazeRequest> _requestPool = default;
-        
+
+        public MazeGeneratingSystem(EcsWorld world, SharedData data)
+        {
+            _data = data;
+            _world = world;
+
+            _mazeCells = world.Filter<Cell>().Exc<Processor>().Exc<ProcessorSurroundings>().End();
+            _spawners = world.Filter<Spawner>().End();
+
+            _cellPool = world.GetPool<Cell>();
+            _deadEndPool = world.GetPool<DeadEnd>();
+            _spawnerPool = world.GetPool<Spawner>();
+        }
+
         public void Run(EcsSystems systems)
         {
-            foreach (var i in _request)
-            {
-                if (_data.Grid.IsGenerated)
-                    SetMazeToDefault();
+            if (_data.Grid.IsGenerated)
+                SetMazeToDefault();
 
-                GenerateMaze();
-                //MarkDeadEnds();
+            GenerateMaze();
+            //MarkDeadEnds();
 
-                _world.SendMessage(new BraidMazeRequest());
-                _data.Grid.IsGenerated = true;
-                _requestPool.Del(i);
-            }
+            _data.Grid.IsGenerated = true;
         }
 
         private void GenerateMaze()

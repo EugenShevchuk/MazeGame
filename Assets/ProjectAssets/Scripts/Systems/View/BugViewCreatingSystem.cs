@@ -1,4 +1,6 @@
-﻿using Project.Components;
+﻿using Leopotam.EcsLite;
+using Project.Components;
+using Project.Infrastructure;
 using Project.Interfaces;
 using Project.Pooling;
 using Project.UnityComponents;
@@ -20,6 +22,10 @@ namespace Project.Systems
             view.gameObject.SetActive(true);
             
             return view;
+        }
+
+        public BugViewCreatingSystem(EcsWorld world, SharedData data) : base(world, data)
+        {
         }
     }
 }

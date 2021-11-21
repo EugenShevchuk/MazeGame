@@ -12,28 +12,23 @@ namespace Project.Systems
 {
     internal sealed class GridGeneratingSystem : IEcsRunSystem
     {
-        private readonly EcsWorld _world = default;
-        [EcsShared] private readonly SharedData _data = default;
+        private readonly EcsWorld _world;
+        private readonly SharedData _data;
 
-        [EcsFilter(typeof(GenerateGridRequest))]
-        private readonly EcsFilter _request = default;
+        private readonly EcsPool<Cell> _cellPool;
+        private readonly EcsPool<CreateViewRequest> _viewRequestPool;
 
-        private readonly EcsPool<GenerateGridRequest> _pool = default;
-        private readonly EcsPool<Cell> _cellPool = default;
-        private readonly EcsPool<CreateViewRequest> _viewRequestPool = default;
+        internal GridGeneratingSystem(EcsWorld world, SharedData data)
+        {
+            _world = world;
+            _data = data;
+            _cellPool = world.GetPool<Cell>();
+            _viewRequestPool = world.GetPool<CreateViewRequest>();
+        }
 
         public void Run(EcsSystems systems)
         {
-            foreach (var i in _request)
-            {
-                var level = _pool.Get(i).Level;
-                _data.CurrentLevel = level;
-                
-                CreateGrid(level);
-                CreateSetupGridRequest(level);
-                
-                _pool.Del(i);
-            }
+            CreateGrid(_data.CurrentLevel);
         }
 
         private void CreateGrid(in Level level)
@@ -106,14 +101,6 @@ namespace Project.Systems
 
             if (y == 0)
                 entity.Add<OnSouthBorder>(_world);
-        }
-
-        private void CreateSetupGridRequest(Level level)
-        {
-            var entity = _world.NewEntity();
-            var pool = _world.GetPool<SetupGridRequest>();
-            ref var request = ref pool.Add(entity);
-            request.Level = level;
         }
     }
 }

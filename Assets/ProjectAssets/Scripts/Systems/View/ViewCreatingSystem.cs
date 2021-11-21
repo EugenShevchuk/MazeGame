@@ -4,22 +4,30 @@ using Project.Components;
 using Project.Events;
 using Project.Infrastructure;
 using Project.Interfaces;
-using Project.UnityComponents;
 using UnityEngine;
 
 namespace Project.Systems
 {
     internal abstract class ViewCreatingSystem<T> : IEcsInitSystem, IEcsRunSystem where T : struct
     {
-        protected readonly EcsWorld World = default;
-        [EcsShared] protected readonly SharedData Data = default;
-        protected AssetsData Assets => Data.Assets;
+        protected readonly EcsWorld World;
+        protected readonly SharedData Data;
         
+        protected AssetsData Assets => Data.Assets;
         protected EcsFilter Request;
 
-        protected readonly EcsPool<CreateViewRequest> RequestPool = default;
-        protected readonly EcsPool<WorldObject> WorldObjectPool = default;
-        
+        private readonly EcsPool<CreateViewRequest> _requestPool;
+        private readonly EcsPool<WorldObject> _worldObjectPool;
+
+        protected ViewCreatingSystem(EcsWorld world, SharedData data)
+        {
+            World = world;
+            Data = data;
+            
+            _requestPool = world.GetPool<CreateViewRequest>();
+            _worldObjectPool = world.GetPool<WorldObject>();
+        }
+
         public virtual void Init(EcsSystems systems)
         {
             Request = World.Filter<CreateViewRequest>()
@@ -33,8 +41,8 @@ namespace Project.Systems
             foreach (var entity in Request)
             {
                 ref var generic = ref World.GetPool<T>().Get(entity);
-                ref var request = ref RequestPool.Get(entity);
-                ref var worldObject = ref WorldObjectPool.Add(entity);
+                ref var request = ref _requestPool.Get(entity);
+                ref var worldObject = ref _worldObjectPool.Add(entity);
 
                 var view = CreateView(ref generic, request.SpawnPosition);
                 view.Entity = World.PackEntityWithWorld(entity);
@@ -44,7 +52,7 @@ namespace Project.Systems
                 viewRef.View = view;
                 worldObject.Transform = view.Transform;
                     
-                RequestPool.Del(entity);
+                _requestPool.Del(entity);
             }
         }
 

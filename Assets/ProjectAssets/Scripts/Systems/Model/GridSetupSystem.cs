@@ -13,53 +13,40 @@ namespace Project.Systems
 {
     internal sealed class GridSetupSystem : IEcsRunSystem
     {
-        private readonly EcsWorld _world = default;
-        
-        [EcsShared] private readonly SharedData _data = default;
+        private readonly EcsWorld _world;
+        private readonly SharedData _data;
 
-        [EcsFilter(typeof(SetupGridRequest))] 
-        private readonly EcsFilter _request = default;
-        private readonly EcsPool<SetupGridRequest> _requestPool = default;
+        private readonly EcsFilter _allCells;
+        private readonly EcsFilter _processor;
+        private readonly EcsFilter _processorSurroundings;
+        private readonly EcsFilter _eastBorderCells;
+        private readonly EcsFilter _westBorderCells;
+        private readonly EcsFilter _northBorderCells;
+        private readonly EcsFilter _southBorderCells;
 
-        [EcsFilter(typeof(Cell))] 
-        private readonly EcsFilter _allCells = default;
+        private readonly EcsPool<Cell> _cellPool;
 
-        [EcsFilter(typeof(Processor), typeof(WorldObject))] 
-        private readonly EcsFilter _processor = default;
+        internal GridSetupSystem(EcsWorld world, SharedData data)
+        {
+            _world = world;
+            _data = data;
+            _allCells = world.Filter<Cell>().End();
+            _processor = world.Filter<Processor>().Inc<WorldObject>().End();
+            _processorSurroundings = world.Filter<ProcessorSurroundings>().End();
+            _eastBorderCells = world.Filter<Cell>().Inc<OnEastBorder>().Exc<OnNorthBorder>().Exc<OnSouthBorder>().End();
+            _westBorderCells = world.Filter<Cell>().Inc<OnWestBorder>().Exc<OnNorthBorder>().Exc<OnSouthBorder>().End();
+            _northBorderCells = world.Filter<Cell>().Inc<OnSouthBorder>().Exc<OnEastBorder>().Exc<OnWestBorder>().End();
+            _southBorderCells = world.Filter<Cell>().Inc<OnSouthBorder>().Exc<OnEastBorder>().Exc<OnWestBorder>().End();
 
-        [EcsFilter(typeof(ProcessorSurroundings))]
-        private readonly EcsFilter _processorSurroundings = default;
-        
-        [EcsFilter(typeof(Cell), typeof(OnEastBorder))]
-        [EcsFilterExclude(typeof(OnNorthBorder), typeof(OnSouthBorder))]
-        private readonly EcsFilter _eastBorderCells = default;
-
-        [EcsFilter(typeof(Cell), typeof(OnWestBorder))]
-        [EcsFilterExclude(typeof(OnNorthBorder), typeof(OnSouthBorder))]
-        private readonly EcsFilter _westBorderCells = default;
-
-        [EcsFilter(typeof(Cell), typeof(OnNorthBorder))]
-        [EcsFilterExclude(typeof(OnEastBorder), typeof(OnWestBorder))]
-        private readonly EcsFilter _northBorderCells = default;
-
-        [EcsFilter(typeof(Cell), typeof(OnSouthBorder))]
-        [EcsFilterExclude(typeof(OnEastBorder), typeof(OnWestBorder))]
-        private readonly EcsFilter _southBorderCells = default;
-
-        private readonly EcsPool<Cell> _cellPool = default;
+            _cellPool = world.GetPool<Cell>();
+        }
 
         public void Run(EcsSystems systems)
         {
-            foreach (var i in _request)
-            {
-                ref var request = ref _requestPool.Get(i);
-
-                SetCellNeighbors(request.Level.MazeSize);
-                LinkProcessorArea();
-                SelectSpawnerCells();
-                
-                _requestPool.Del(i);
-            }
+            SetCellNeighbors(_data.CurrentLevel.MazeSize);
+            LinkProcessorArea();
+            SelectSpawnerCells();
+            _world.SendMessage(new GridIsReady());
         }
 
         private void SetCellNeighbors(int mazeSize)
@@ -103,28 +90,24 @@ namespace Project.Systems
                         processorCell.Link(surroundingCell.Entity);
                         return;
                     }
-
                     if (x == processorX + 1 && y == processorY + 1)
                     {
                         surroundingCell.Link(_data.Grid.Cells[x][y - 1].Entity);
                         surroundingCell.Link(_data.Grid.Cells[x - 1][y].Entity);
                         return;
                     }
-
                     if (x == processorX - 1 && y == processorY + 1)
                     {
                         surroundingCell.Link(_data.Grid.Cells[x + 1][y].Entity);
                         surroundingCell.Link(_data.Grid.Cells[x][y - 1].Entity);
                         return;
                     }
-
                     if (x == processorX + 1 && y == processorY - 1)
                     {
                         surroundingCell.Link(_data.Grid.Cells[x][y + 1].Entity);
                         surroundingCell.Link(_data.Grid.Cells[x - 1][y].Entity);
                         return;
                     }
-
                     if (x == processorX - 1 && y == processorY - 1)
                     {
                         surroundingCell.Link(_data.Grid.Cells[x][y + 1].Entity);
@@ -170,9 +153,12 @@ namespace Project.Systems
         {
             var spawnerEntity = _world.NewEntity();
             ref var spawner = ref _world.GetPool<Spawner>().Add(spawnerEntity);
-            
+            ref var viewRequest = ref _world.GetPool<CreateViewRequest>().Add(spawnerEntity);
+
             spawner.Parent = parent;
             spawner.TurnsToSpawn = 1;
+
+            viewRequest.SpawnPosition = new Vector3(parent.Position.x, parent.Position.y, 0);
             
             var occupiedPool = _world.GetPool<Occupied>();
             ref var occupied = ref occupiedPool.Add(cellEntity);
